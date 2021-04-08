@@ -1,15 +1,49 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import axios from 'axios'
+
+import './app.css'
 import FlashCardList from './components/FlashCardList'
 
 function App() {
   const [flashcards, setFlashCards] = useState(SAMPLE_FLASHCARDS)
+
+  // call in the questions from the API
+  useEffect(() => {
+    axios.get('https://opentdb.com/api.php?amount=10').then((res) => {
+      setFlashCards(
+        res.data.results.map((questionItem, index) => {
+          const answer = decodeString(questionItem.correct_answer)
+          const options = [
+            ...questionItem.incorrect_answers.map((incorrectAnswer) => decodeString(incorrectAnswer)),
+            // questionItem.correct_answer
+            answer
+          ]
+          return {
+            id: `${index}-${Date.now()}`,
+            question: decodeString(questionItem.question),
+            answer: answer,
+            options: options.sort(() => Math.random() - 0.5)
+          }
+        })
+      )
+      console.log(res.data)
+    })
+  }, [])
+
+  function decodeString(str) {
+    const textArea = document.createElement('textarea')
+    textArea.innerHTML = str
+    return textArea.value
+  }
 
   return (
     <div className="App">
       <header className="App-header">
         <p>beep</p>
       </header>
-      <FlashCardList flashcards={flashcards} />
+      <div className="container">
+        <FlashCardList flashcards={flashcards} />
+      </div>
     </div>
   )
 }
@@ -34,11 +68,5 @@ const SAMPLE_FLASHCARDS = [
     question: 'How do you say PIZZA in Spanish?',
     answer: 'PIZZA',
     options: ['Beep', 'Boop', 'PIZZA', 'Marklar']
-  },
-  {
-    id: 4,
-    question: 'How do you say CERVEZA in Spanish?',
-    answer: 'CERVEZA',
-    options: ['Beep', 'Boop', 'CERVEZA', 'Marklar']
   }
 ]
